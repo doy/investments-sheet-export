@@ -1,5 +1,5 @@
 [package]
-name = "google-sheet-export"
+name = "investments-sheet-export"
 version = "0.0.1"
 authors = ["Jesse Luehrs <doy@tozt.net>"]
 edition = "2018"
