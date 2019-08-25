@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+cd "$(dirname "$0")/.." || exit 1
+
+cargo build
+cd data || exit 1
+
+rm -f ./*.tsv || true
+../target/debug/investments-sheet-export
+
+psql -U metabase investments < schema.sql
+psql -U metabase investments -c 'COPY categories FROM STDIN' < categories.tsv
+psql -U metabase investments -c 'COPY holdings FROM STDIN' < holdings.tsv
