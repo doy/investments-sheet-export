@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS holdings;
 DROP TABLE IF EXISTS categories;
 
-CREATE TABLE categories (
+CREATE TABLE investment_categories (
     name text PRIMARY KEY,
     target_allocation integer
 );

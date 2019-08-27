@@ -38,7 +38,8 @@ fn main() {
         .map(|u| Sheet::new(&reqwest::get(&u).unwrap().text().unwrap()))
         .collect();
 
-    let mut file = std::fs::File::create("categories.tsv").unwrap();
+    let mut file =
+        std::fs::File::create("investment_categories.tsv").unwrap();
     for row in sheets[0].rows().skip(1) {
         if row[0] == "" {
             break;
