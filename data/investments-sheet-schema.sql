@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS holdings;
-DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS investment_categories;
 
 CREATE TABLE investment_categories (
     name text PRIMARY KEY,
