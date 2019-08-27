@@ -10,7 +10,7 @@ CREATE TABLE holdings (
     account text,
     symbol text,
     name text,
-    category text REFERENCES categories(name),
+    category text REFERENCES investment_categories(name),
     shares numeric(10, 3),
     price numeric(10, 2),
     expense_ratio numeric(5, 2),
