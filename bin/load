@@ -22,3 +22,7 @@ psql -U metabase money < "$(dirname "$0")/../data/investments-sheet-schema.sql"
 
 psql -U metabase money -c 'COPY investment_categories FROM STDIN' < investment_categories.tsv
 psql -U metabase money -c 'COPY holdings FROM STDIN' < holdings.tsv
+
+psql -U metabase money < "$(dirname "$0")/../data/taxes.sql"
+
+psql -U metabase money -c 'COPY taxes FROM STDIN' < /media/persistent/metabase/extra_data/taxes.tsv
