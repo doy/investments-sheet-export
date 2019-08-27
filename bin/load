@@ -17,7 +17,7 @@ psql -U metabase money -c 'COPY subtransactions FROM STDIN' < subtransactions.ts
 psql -U metabase money -c 'COPY scheduled_transactions FROM STDIN' < scheduled_transactions.tsv
 psql -U metabase money -c 'COPY scheduled_subtransactions FROM STDIN' < scheduled_subtransactions.tsv
 
-cargo run --manifest-path "$(dirname "$0")/../Cargo.toml" --bin investments-sheet-export "$@"
+cargo run -q --manifest-path "$(dirname "$0")/../Cargo.toml" --bin investments-sheet-export "$@"
 psql -U metabase money < "$(dirname "$0")/../data/investments-sheet-schema.sql"
 
 psql -U metabase money -c 'COPY investment_categories FROM STDIN' < investment_categories.tsv
