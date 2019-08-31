@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS taxes;
 DROP TABLE IF EXISTS tax_returns;
 
 CREATE TABLE tax_returns (
