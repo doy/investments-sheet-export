@@ -56,7 +56,7 @@ CREATE VIEW denorm_transactions AS (
         ) LEFT JOIN accounts transfer_accounts ON (
             transactions_with_subtransactions.transfer_account_id = transfer_accounts.id
         ) LEFT JOIN tins ON (
-            tins.tin = regexp_match(memo, '\mtin:([^ ]+)')[1]
+            tins.tin = (regexp_match(memo, '\mtin:([^ ]+)'))[1]
         )
 );
 
@@ -112,7 +112,7 @@ CREATE VIEW denorm_scheduled_transactions AS (
         ) LEFT JOIN accounts transfer_accounts ON (
             scheduled_transactions_with_subtransactions.transfer_account_id = transfer_accounts.id
         ) LEFT JOIN tins ON (
-            tins.tin = regexp_match(memo, '\mtin:([^ ]+)')[1]
+            tins.tin = (regexp_match(memo, '\mtin:([^ ]+)'))[1]
         )
 );
 
