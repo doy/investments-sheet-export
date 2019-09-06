@@ -26,3 +26,4 @@ psql -U metabase money -c 'COPY holdings FROM STDIN' < holdings.tsv
 psql -U metabase money < "$(dirname "$0")/../data/tax_returns.sql"
 
 psql -U metabase money -c 'COPY tax_returns FROM STDIN' < /media/persistent/metabase/extra_data/tax_returns.tsv
+psql -U metabase money -c 'COPY tins FROM STDIN' < /media/persistent/metabase/extra_data/tins.tsv
