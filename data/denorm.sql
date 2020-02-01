@@ -320,7 +320,7 @@ CREATE VIEW future_transactions AS (
 
 CREATE VIEW spending AS (
     SELECT
-        id,
+        denorm_transactions.id,
         subtransaction_id,
         date,
         amount,
