@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS spending;
 DROP VIEW IF EXISTS future_transactions;
 DROP VIEW IF EXISTS denorm_scheduled_transactions;
 DROP VIEW IF EXISTS denorm_transactions;
@@ -315,4 +316,37 @@ CREATE VIEW future_transactions AS (
         repeated_transactions
     WHERE
         date <= CURRENT_DATE + interval '2 years'
+);
+
+CREATE VIEW spending AS (
+    SELECT
+        id,
+        subtransaction_id,
+        date,
+        amount,
+        memo,
+        cleared,
+        approved,
+        flag_color,
+        account_id,
+        account,
+        payee_id,
+        payee,
+        category_group_id,
+        category_group,
+        category_id,
+        category
+    FROM
+        denorm_transactions LEFT JOIN categories ON (
+            denorm_transactions.category_id = categories.id
+        )
+    WHERE
+        amount < 0 AND
+        NOT categories.hidden AND
+        transfer_account_id IS NULL AND
+        category != 'Retirement' and
+        category != 'Income Tax' and
+        category != 'Donations' and
+        category != 'Family' and
+        category != 'Reimbursables'
 );
