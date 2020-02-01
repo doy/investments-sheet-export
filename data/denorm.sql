@@ -332,7 +332,7 @@ CREATE VIEW spending AS (
         account,
         payee_id,
         payee,
-        category_group_id,
+        denorm_transactions.category_group_id,
         category_group,
         category_id,
         category
