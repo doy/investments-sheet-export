@@ -2,6 +2,7 @@
 set -eu
 
 /home/doy/.cargo/bin/ynab-export
+psql -U metabase money -c 'DROP VIEW IF EXISTS spending'
 /home/doy/.cargo/bin/ynab-export schema | psql -U metabase money
 
 seq 1000000 | psql -U metabase money -c 'COPY ints FROM STDIN'
