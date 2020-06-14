@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+export PGOPTIONS="-c client_min_messages=warning"
+
 /home/doy/.cargo/bin/ynab-export
 psql -U metabase money -c 'DROP VIEW IF EXISTS spending'
 /home/doy/.cargo/bin/ynab-export schema | psql -U metabase money
