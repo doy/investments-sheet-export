@@ -348,5 +348,6 @@ CREATE VIEW spending AS (
         category != 'Income Tax' and
         category != 'Donations' and
         category != 'Family' and
-        category != 'Reimbursables'
+        category != 'Reimbursables' and
+        category != 'Down Payment'
 );
