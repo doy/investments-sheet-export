@@ -349,5 +349,5 @@ CREATE VIEW spending AS (
         category != 'Donations' and
         category != 'Family' and
         category != 'Reimbursables' and
-        (memo IS NULL or memo != 'down payment')
+        category != 'Apartment Principal Payment'
 );
