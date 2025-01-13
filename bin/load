@@ -2,34 +2,46 @@
 set -eu
 
 DB=/media/persistent/metabase/sqlite/db.sqlite3
-mkdir -p "$(dirname $DB)"
 rm -f "$DB"
 
+sqlite() {
+  sqlite3 -tabs "$DB" "$@"
+}
+
+import_csv() {
+  file=$1
+  table="$(basename "$file" .tsv)"
+  sqlite ".import '|cat -' $table" < "$file"
+  for column in $(sqlite "select name from pragma_table_info('$table')"); do
+    sqlite "update $table set $column = null where column = '\N'"
+  done
+}
+
 /home/doy/.cargo/bin/ynab-export
-/home/doy/.cargo/bin/ynab-export sqlite3-schema | sqlite3 "$DB"
+/home/doy/.cargo/bin/ynab-export sqlite3-schema | sqlite
 
-seq 1000000 | sqlite3 -tabs "$DB" ".import '|cat -' ints"
+seq 1000000 | sqlite ".import '|cat -' ints"
 
-sqlite3 -tabs "$DB" ".import '|cat -' accounts" < accounts.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' category_groups" < category_groups.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' categories" < categories.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' months" < months.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' categories_by_month" < categories_by_month.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' payees" < payees.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' transactions" < transactions.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' subtransactions" < subtransactions.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' scheduled_transactions" < scheduled_transactions.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' scheduled_subtransactions" < scheduled_subtransactions.tsv
+import_csv accounts.tsv
+import_csv category_groups.tsv
+import_csv categories.tsv
+import_csv months.tsv
+import_csv categories_by_month.tsv
+import_csv payees.tsv
+import_csv transactions.tsv
+import_csv subtransactions.tsv
+import_csv scheduled_transactions.tsv
+import_csv scheduled_subtransactions.tsv
 
 cargo run -q --manifest-path "$(dirname "$0")/../Cargo.toml" --bin investments-sheet-export "$@"
-sqlite3 "$DB" < "$(dirname "$0")/../data/investments-sheet-schema.sql"
+sqlite < "$(dirname "$0")/../data/investments-sheet-schema.sql"
 
-sqlite3 -tabs "$DB" ".import '|cat -' investment_categories" < investment_categories.tsv
-sqlite3 -tabs "$DB" ".import '|cat -' holdings" < holdings.tsv
+import_csv investment_categories.tsv
+import_csv holdings.tsv
 
-sqlite3 "$DB" < "$(dirname "$0")/../data/tax_returns.sql"
+sqlite < "$(dirname "$0")/../data/tax_returns.sql"
+sqlite < "$(dirname "$0")/../data/tins.sql"
+sqlite < "$(dirname "$0")/../data/denorm.sql"
 
-sqlite3 -tabs "$DB" ".import '|cat -' tax_returns" < /media/persistent/metabase/extra_data/tax_returns.tsv
-sqlite3 "$DB" < "$(dirname "$0")/../data/tins.sql"
-sqlite3 -tabs "$DB" ".import '|cat -' tins" < /media/persistent/metabase/extra_data/tins.tsv
-sqlite3 "$DB" < "$(dirname "$0")/../data/denorm.sql"
+import_csv /media/persistent/metabase/extra_data/tax_returns.tsv
+import_csv /media/persistent/metabase/extra_data/tins.tsv
