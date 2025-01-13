@@ -3,7 +3,7 @@ DROP VIEW IF EXISTS future_transactions;
 DROP VIEW IF EXISTS denorm_scheduled_transactions;
 DROP VIEW IF EXISTS denorm_transactions;
 
-CREATE VIEW denorm_transactions AS (
+CREATE VIEW denorm_transactions AS
     WITH
     transactions_with_subtransactions AS (
         SELECT
@@ -57,11 +57,28 @@ CREATE VIEW denorm_transactions AS (
         ) LEFT JOIN accounts transfer_accounts ON (
             transactions_with_subtransactions.transfer_account_id = transfer_accounts.id
         ) LEFT JOIN tins ON (
-            tins.tin = (regexp_match(memo, '\mtin:([^ ]+)'))[1]
-        )
-);
+            tins.tin = iif(
+                instr(memo, 'tin:') = 0,
+                NULL,
+                substr(
+                    memo,
+                    instr(memo, 'tin:') + 4,
+                    iif(
+                        instr(substr(memo, instr(memo, 'tin:') + 4), ' ') = 0,
+                        length(memo),
+                        instr(
+                            substr(
+                                memo,
+                                instr(memo, 'tin:') + 4
+                            ),
+                            ' '
+                        ) - 1
+                    )
+                )
+            )
+        );
 
-CREATE VIEW denorm_scheduled_transactions AS (
+CREATE VIEW denorm_scheduled_transactions AS
     WITH
     scheduled_transactions_with_subtransactions AS (
         SELECT
@@ -113,16 +130,33 @@ CREATE VIEW denorm_scheduled_transactions AS (
         ) LEFT JOIN accounts transfer_accounts ON (
             scheduled_transactions_with_subtransactions.transfer_account_id = transfer_accounts.id
         ) LEFT JOIN tins ON (
-            tins.tin = (regexp_match(memo, '\mtin:([^ ]+)'))[1]
-        )
-);
+            tins.tin = iif(
+                instr(memo, 'tin:') = 0,
+                NULL,
+                substr(
+                    memo,
+                    instr(memo, 'tin:') + 4,
+                    iif(
+                        instr(substr(memo, instr(memo, 'tin:') + 4), ' ') = 0,
+                        length(memo),
+                        instr(
+                            substr(
+                                memo,
+                                instr(memo, 'tin:') + 4
+                            ),
+                            ' '
+                        ) - 1
+                    )
+                )
+            )
+        );
 
-CREATE VIEW future_transactions AS (
+CREATE VIEW future_transactions AS
     WITH
     daily AS (
         SELECT
-            'daily'::frequency_t AS frequency,
-            (ints.i - 1) * interval '1 day' AS span
+            'daily' AS frequency,
+            (ints.i - 1) AS days
         FROM
             ints
         WHERE
@@ -130,8 +164,8 @@ CREATE VIEW future_transactions AS (
     ),
     weekly AS (
         SELECT
-            'weekly'::frequency_t AS frequency,
-            (ints.i - 1) * interval '1 week' AS span
+            'weekly' AS frequency,
+            (ints.i - 1) * 7 AS days
         FROM
             ints
         WHERE
@@ -139,8 +173,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_other_week AS (
         SELECT
-            'everyOtherWeek'::frequency_t AS frequency,
-            (ints.i - 1) * interval '2 weeks' AS span
+            'everyOtherWeek' AS frequency,
+            (ints.i - 1) * 14 AS days
         FROM
             ints
         WHERE
@@ -148,8 +182,9 @@ CREATE VIEW future_transactions AS (
     ),
     twice_a_month AS (
         SELECT
-            'twiceAMonth'::frequency_t AS frequency,
-            make_interval(months => a.i, days => b.i) AS span
+            'twiceAMonth' AS frequency,
+            a.i AS months,
+            b.i AS days
         FROM
             ints a CROSS JOIN ints b
         WHERE
@@ -157,8 +192,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_four_weeks AS (
         SELECT
-            'every4Weeks'::frequency_t AS frequency,
-            (ints.i - 1) * interval '4 weeks' AS span
+            'every4Weeks' AS frequency,
+            (ints.i - 1) * 28 AS days
         FROM
             ints
         WHERE
@@ -166,8 +201,8 @@ CREATE VIEW future_transactions AS (
     ),
     monthly AS (
         SELECT
-            'monthly'::frequency_t AS frequency,
-            (ints.i - 1) * interval '1 month' AS span
+            'monthly' AS frequency,
+            (ints.i - 1) AS months
         FROM
             ints
         WHERE
@@ -175,8 +210,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_other_month AS (
         SELECT
-            'everyOtherMonth'::frequency_t AS frequency,
-            (ints.i - 1) * interval '2 months' AS span
+            'everyOtherMonth' AS frequency,
+            (ints.i - 1) * 2 AS months
         FROM
             ints
         WHERE
@@ -184,8 +219,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_three_months AS (
         SELECT
-            'every3Months'::frequency_t AS frequency,
-            (ints.i - 1) * interval '3 months' AS span
+            'every3Months' AS frequency,
+            (ints.i - 1) * 3 AS months
         FROM
             ints
         WHERE
@@ -193,8 +228,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_four_months AS (
         SELECT
-            'every4Months'::frequency_t AS frequency,
-            (ints.i - 1) * interval '4 months' AS span
+            'every4Months' AS frequency,
+            (ints.i - 1) * 4 AS months
         FROM
             ints
         WHERE
@@ -202,8 +237,8 @@ CREATE VIEW future_transactions AS (
     ),
     twice_a_year AS (
         SELECT
-            'twiceAYear'::frequency_t AS frequency,
-            (ints.i - 1) * interval '6 months' AS span
+            'twiceAYear' AS frequency,
+            (ints.i - 1) * 6 AS months
         FROM
             ints
         WHERE
@@ -211,8 +246,8 @@ CREATE VIEW future_transactions AS (
     ),
     yearly AS (
         SELECT
-            'yearly'::frequency_t AS frequency,
-            (ints.i - 1) * interval '1 year' AS span
+            'yearly' AS frequency,
+            (ints.i - 1) * 12 AS months
         FROM
             ints
         WHERE
@@ -220,8 +255,8 @@ CREATE VIEW future_transactions AS (
     ),
     every_other_year AS (
         SELECT
-            'everyOtherYear'::frequency_t AS frequency,
-            (ints.i - 1) * interval '2 years' AS span
+            'everyOtherYear' AS frequency,
+            (ints.i - 1) * 24 AS months
         FROM
             ints
         WHERE
@@ -233,31 +268,31 @@ CREATE VIEW future_transactions AS (
             scheduled_subtransaction_id,
             CASE
             WHEN frequency = 'never' THEN
-                date
+                date(date)
             WHEN frequency = 'daily' THEN
-                date + daily.span
+                date(date, '+' || daily.days || ' days')
             WHEN frequency = 'weekly' THEN
-                date + weekly.span
+                date(date, '+' || weekly.days || ' days')
             WHEN frequency = 'everyOtherWeek' THEN
-                date + every_other_week.span
+                date(date, '+' || every_other_week.days || ' days')
             WHEN frequency = 'twiceAMonth' THEN
-                date + twice_a_month.span
+                date(date, '+' || twice_a_month.days || ' days', '+' || twice_a_month.months || ' months')
             WHEN frequency = 'every4Weeks' THEN
-                date + every_four_weeks.span
+                date(date, '+' || every_four_weeks.days || ' days')
             WHEN frequency = 'monthly' THEN
-                date + monthly.span
+                date(date, '+' || monthly.months || ' months')
             WHEN frequency = 'everyOtherMonth' THEN
-                date + every_other_month.span
+                date(date, '+' || every_other_month.months || ' months')
             WHEN frequency = 'every3Months' THEN
-                date + every_three_months.span
+                date(date, '+' || every_three_months.months || ' months')
             WHEN frequency = 'every4Months' THEN
-                date + every_four_months.span
+                date(date, '+' || every_four_months.months || ' months')
             WHEN frequency = 'twiceAYear' THEN
-                date + twice_a_year.span
+                date(date, '+' || twice_a_year.months || ' months')
             WHEN frequency = 'yearly' THEN
-                date + yearly.span
+                date(date, '+' || yearly.months || ' months')
             WHEN frequency = 'everyOtherYear' THEN
-                date + every_other_year.span
+                date(date, '+' || every_other_year.months || ' months')
             ELSE
                 NULL
             END AS date,
@@ -315,8 +350,7 @@ CREATE VIEW future_transactions AS (
     FROM
         repeated_transactions
     WHERE
-        date <= CURRENT_DATE + interval '2 years'
-);
+        date <= date('now', '+2 years');
 
 CREATE VIEW spending AS (
     SELECT

@@ -1,34 +1,35 @@
 #!/bin/sh
 set -eu
 
-export PGOPTIONS="-c client_min_messages=warning"
+DB=/media/persistent/metabase/sqlite/db.sqlite3
+mkdir -p "$(dirname $DB)"
+rm -f "$DB"
 
 /home/doy/.cargo/bin/ynab-export
-psql -U metabase money -c 'DROP VIEW IF EXISTS spending'
-/home/doy/.cargo/bin/ynab-export schema | psql -U metabase money
+/home/doy/.cargo/bin/ynab-export sqlite3-schema | sqlite3 "$DB"
 
-seq 1000000 | psql -U metabase money -c 'COPY ints FROM STDIN'
+seq 1000000 | sqlite3 "$DB" ".import '|cat -' ints"
 
-psql -U metabase money -c 'COPY accounts FROM STDIN' < accounts.tsv
-psql -U metabase money -c 'COPY category_groups FROM STDIN' < category_groups.tsv
-psql -U metabase money -c 'COPY categories FROM STDIN' < categories.tsv
-psql -U metabase money -c 'COPY months FROM STDIN' < months.tsv
-psql -U metabase money -c 'COPY categories_by_month FROM STDIN' < categories_by_month.tsv
-psql -U metabase money -c 'COPY payees FROM STDIN' < payees.tsv
-psql -U metabase money -c 'COPY transactions FROM STDIN' < transactions.tsv
-psql -U metabase money -c 'COPY subtransactions FROM STDIN' < subtransactions.tsv
-psql -U metabase money -c 'COPY scheduled_transactions FROM STDIN' < scheduled_transactions.tsv
-psql -U metabase money -c 'COPY scheduled_subtransactions FROM STDIN' < scheduled_subtransactions.tsv
+sqlite3 "$DB" ".import '|cat -' accounts" < accounts.tsv
+sqlite3 "$DB" ".import '|cat -' category_groups" < category_groups.tsv
+sqlite3 "$DB" ".import '|cat -' categories" < categories.tsv
+sqlite3 "$DB" ".import '|cat -' months" < months.tsv
+sqlite3 "$DB" ".import '|cat -' categories_by_month" < categories_by_month.tsv
+sqlite3 "$DB" ".import '|cat -' payees" < payees.tsv
+sqlite3 "$DB" ".import '|cat -' transactions" < transactions.tsv
+sqlite3 "$DB" ".import '|cat -' subtransactions" < subtransactions.tsv
+sqlite3 "$DB" ".import '|cat -' scheduled_transactions" < scheduled_transactions.tsv
+sqlite3 "$DB" ".import '|cat -' scheduled_subtransactions" < scheduled_subtransactions.tsv
 
 cargo run -q --manifest-path "$(dirname "$0")/../Cargo.toml" --bin investments-sheet-export "$@"
-psql -U metabase money < "$(dirname "$0")/../data/investments-sheet-schema.sql"
+sqlite3 "$DB" < "$(dirname "$0")/../data/investments-sheet-schema.sql"
 
-psql -U metabase money -c 'COPY investment_categories FROM STDIN' < investment_categories.tsv
-psql -U metabase money -c 'COPY holdings FROM STDIN' < holdings.tsv
+sqlite3 "$DB" ".import '|cat -' investment_categories" < investment_categories.tsv
+sqlite3 "$DB" ".import '|cat -' holdings" < holdings.tsv
 
-psql -U metabase money < "$(dirname "$0")/../data/tax_returns.sql"
+sqlite3 "$DB" < "$(dirname "$0")/../data/tax_returns.sql"
 
-psql -U metabase money -c 'COPY tax_returns FROM STDIN' < /media/persistent/metabase/extra_data/tax_returns.tsv
-psql -U metabase money < "$(dirname "$0")/../data/tins.sql"
-psql -U metabase money -c 'COPY tins FROM STDIN' < /media/persistent/metabase/extra_data/tins.tsv
-psql -U metabase money < "$(dirname "$0")/../data/denorm.sql"
+sqlite3 "$DB" ".import '|cat -' tax_returns" < /media/persistent/metabase/extra_data/tax_returns.tsv
+sqlite3 "$DB" < "$(dirname "$0")/../data/tins.sql"
+sqlite3 "$DB" ".import '|cat -' tins" < /media/persistent/metabase/extra_data/tins.tsv
+sqlite3 "$DB" < "$(dirname "$0")/../data/denorm.sql"
