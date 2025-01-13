@@ -35,7 +35,9 @@ impl Sheet {
 fn main() {
     let sheets: Vec<_> = std::env::args()
         .skip(1)
-        .map(|u| Sheet::new(&reqwest::get(&u).unwrap().text().unwrap()))
+        .map(|u| {
+            Sheet::new(&reqwest::blocking::get(&u).unwrap().text().unwrap())
+        })
         .collect();
 
     let mut file =
