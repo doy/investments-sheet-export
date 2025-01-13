@@ -2,7 +2,6 @@
 set -eu
 
 DB=/media/persistent/metabase/sqlite/db.sqlite3
-truncate -s 0 "$DB"
 
 sqlite() {
   sqlite3 -tabs "$DB" "$@"
