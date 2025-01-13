@@ -13,7 +13,7 @@ import_csv() {
   table="$(basename "$file" .tsv)"
   sqlite ".import '|cat -' $table" < "$file"
   for column in $(sqlite "select name from pragma_table_info('$table')"); do
-    sqlite "update $table set $column = null where column = '\N'"
+    sqlite "update $table set $column = null where $column = '\N'"
   done
 }
 
