@@ -352,7 +352,7 @@ CREATE VIEW future_transactions AS
     WHERE
         date <= date('now', '+2 years');
 
-CREATE VIEW spending AS (
+CREATE VIEW spending AS
     SELECT
         denorm_transactions.id,
         subtransaction_id,
@@ -383,5 +383,4 @@ CREATE VIEW spending AS (
         category != 'Donations' and
         category != 'Family' and
         category != 'Reimbursables' and
-        category != 'Apartment Principal Payment'
-);
+        category != 'Apartment Principal Payment';
